@@ -373,7 +373,7 @@
         <div id="labelUploadContent">
           <div class="upload-icon">📋</div>
           <p class="upload-text">
-            Click to upload museum label/information card
+            Click to upload museum label/information card (Optional)
           </p>
         </div>
         <img
@@ -502,7 +502,7 @@
       }
 
       function checkIfBothImagesReady() {
-        if (currentObjectImageBase64 && currentLabelImageBase64) {
+        if (currentObjectImageBase64) {
           imagePreview.classList.remove("hidden");
           results.classList.add("hidden");
           errorDiv.classList.add("hidden");
@@ -516,8 +516,8 @@
       });
 
       async function analyzeImage() {
-        if (!currentObjectImageBase64 || !currentLabelImageBase64) {
-          showError("Please select both museum object and label images first.");
+        if (!currentObjectImageBase64) {
+          showError("Please select a museum object image first.");
           return;
         }
 
@@ -534,7 +534,7 @@
             },
             body: JSON.stringify({
               objectImageBase64: currentObjectImageBase64,
-              labelImageBase64: currentLabelImageBase64,
+              labelImageBase64: currentLabelImageBase64 || null,
               context: contextInput.value.trim(),
               location: locationInput.value.trim(),
             }),
