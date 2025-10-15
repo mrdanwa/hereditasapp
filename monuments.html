@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hereditas - Heritage Object Analyzer</title>
+    <link rel="icon" type="image/png" href="assets/logo/favicon.png" />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        min-height: 100vh;
+        background: #dfdddb;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+      }
+
+      .container {
+        background: rgba(255, 255, 255, 0.98);
+        padding: 40px;
+        border-radius: 12px;
+        box-shadow: 0 8px 32px rgba(32, 61, 82, 0.15);
+        max-width: 600px;
+        width: 100%;
+        transition: all 0.3s ease;
+      }
+
+      h1 {
+        color: #203d52;
+        font-size: 2.5rem;
+        font-weight: 600;
+        margin-bottom: 10px;
+        cursor: pointer;
+        transition: color 0.2s ease;
+        text-align: center;
+      }
+
+      h1:hover {
+        color: #2a4d66;
+      }
+
+      .subtitle {
+        text-align: center;
+        color: #4a5c6b;
+        margin-bottom: 40px;
+        font-size: 1.1rem;
+        font-weight: 400;
+      }
+
+      .upload-area {
+        border: 3px dashed #d1d0ce;
+        background: #f5f4f3;
+        padding: 50px 30px;
+        text-align: center;
+        margin-bottom: 30px;
+        cursor: pointer;
+        border-radius: 15px;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .upload-area::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(32, 61, 82, 0.1),
+          transparent
+        );
+        transition: left 0.5s;
+      }
+
+      .upload-area:hover {
+        border-color: #203d52;
+        background: #e8e7e5;
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(32, 61, 82, 0.1);
+      }
+
+      .upload-area:hover::before {
+        left: 100%;
+      }
+
+      .upload-icon {
+        font-size: 3rem;
+        margin-bottom: 15px;
+        color: #203d52;
+      }
+
+      .upload-text {
+        color: #203d52;
+        font-size: 1.1rem;
+        font-weight: 500;
+      }
+
+      #fileInput {
+        display: none;
+      }
+
+      .preview-section {
+        text-align: center;
+      }
+
+      .preview-img {
+        max-width: 100%;
+        max-height: 300px;
+        border-radius: 10px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        margin: 10px 0;
+        transition: transform 0.3s ease;
+        object-fit: contain;
+      }
+
+      .preview-img:hover {
+        transform: scale(1.02);
+      }
+
+      button {
+        background: #203d52;
+        color: white;
+        border: none;
+        padding: 15px 30px;
+        border-radius: 50px;
+        cursor: pointer;
+        display: block;
+        margin: 25px auto;
+        font-size: 1rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        box-shadow: 0 8px 25px rgba(32, 61, 82, 0.3);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 35px rgba(32, 61, 82, 0.4);
+        background: #2a4d66;
+      }
+
+      button:active {
+        transform: translateY(0);
+      }
+
+      button:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: 0 8px 25px rgba(32, 61, 82, 0.2);
+      }
+
+      .loading {
+        text-align: center;
+        display: none;
+        padding: 40px 0;
+      }
+
+      .loading-spinner {
+        width: 50px;
+        height: 50px;
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #203d52;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 20px;
+      }
+
+      .loading-text {
+        color: #203d52;
+        font-size: 1.1rem;
+        font-weight: 500;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      @keyframes fadeInUp {
+        from {
+          opacity: 0;
+          transform: translateY(30px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .results {
+        background: #f5f4f3;
+        padding: 30px;
+        border-radius: 15px;
+        margin-top: 30px;
+        border-left: 5px solid #203d52;
+        animation: fadeInUp 0.5s ease;
+      }
+
+      .results h3 {
+        color: #203d52;
+        margin-bottom: 20px;
+        font-size: 1.3rem;
+        font-weight: 600;
+      }
+
+      .analysis-content {
+        color: #4a5c6b;
+        line-height: 1.6;
+        font-size: 1rem;
+      }
+
+      .error {
+        background: linear-gradient(145deg, #f8d7da, #f5c6cb);
+        color: #721c24;
+        padding: 20px;
+        border-radius: 15px;
+        margin: 25px 0;
+        border-left: 5px solid #dc3545;
+        font-weight: 500;
+        animation: fadeInUp 0.5s ease;
+      }
+
+      .hidden {
+        display: none;
+      }
+
+      .context-section {
+        margin-bottom: 30px;
+        animation: fadeInUp 0.5s ease;
+      }
+
+      .context-label {
+        display: block;
+        color: #203d52;
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin-bottom: 10px;
+        text-align: left;
+      }
+
+      .context-input {
+        width: 100%;
+        padding: 15px 20px;
+        border: 2px solid #d1d0ce;
+        border-radius: 15px;
+        background: #f5f4f3;
+        color: #203d52;
+        font-size: 1rem;
+        font-family: inherit;
+        line-height: 1.5;
+        resize: vertical;
+        min-height: 100px;
+        transition: all 0.3s ease;
+        outline: none;
+      }
+
+      .context-input:focus {
+        border-color: #203d52;
+        background: #e8e7e5;
+        box-shadow: 0 0 0 3px rgba(32, 61, 82, 0.1);
+      }
+
+      .context-input::placeholder {
+        color: #4a5c6b;
+        opacity: 0.8;
+      }
+
+      /* Mobile Responsiveness */
+      @media (max-width: 768px) {
+        .container {
+          padding: 30px 20px;
+          margin: 10px;
+        }
+
+        h1 {
+          font-size: 2rem;
+        }
+
+        .upload-area {
+          padding: 40px 20px;
+        }
+
+        button {
+          padding: 12px 25px;
+          font-size: 0.9rem;
+        }
+      }
+
+      @media (max-width: 480px) {
+        body {
+          padding: 10px;
+        }
+
+        .container {
+          padding: 25px 15px;
+        }
+
+        h1 {
+          font-size: 1.8rem;
+        }
+
+        .subtitle {
+          font-size: 1rem;
+        }
+
+        .upload-area {
+          padding: 30px 15px;
+        }
+
+        .upload-icon {
+          font-size: 2.5rem;
+        }
+
+        .upload-text {
+          font-size: 1rem;
+        }
+
+        .context-input {
+          padding: 12px 15px;
+          font-size: 0.9rem;
+        }
+
+        .context-label {
+          font-size: 1rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1 onclick="goToIndex()">
+        <img
+          src="assets/logo/logo2.png"
+          alt="Hereditas Logo"
+          style="height: 50px; vertical-align: middle; padding-bottom: 10px"
+        />
+      </h1>
+      <p class="subtitle">AI-Powered Heritage Object Analysis</p>
+
+      <div class="upload-area" id="uploadArea">
+        <input type="file" id="fileInput" accept="image/*" />
+        <div id="uploadContent">
+          <div class="upload-icon">📸</div>
+          <p class="upload-text">Click to upload an image</p>
+        </div>
+        <img id="previewImg" class="preview-img hidden" alt="Preview" />
+      </div>
+
+      <div class="context-section">
+        <label for="contextInput" class="context-label"
+          >Add Context (Optional)</label
+        >
+        <textarea
+          id="contextInput"
+          class="context-input"
+          placeholder="Provide additional context about this heritage object."
+          rows="4"
+        ></textarea>
+      </div>
+
+      <div class="context-section">
+        <label for="locationInput" class="context-label"
+          >Location (Optional)</label
+        >
+        <input
+          id="locationInput"
+          class="context-input"
+          placeholder="Enter the location where this heritage object is located (e.g., Paris, France)"
+          style="min-height: 50px; resize: none"
+        />
+      </div>
+
+      <div id="imagePreview" class="preview-section hidden">
+        <button id="analyzeBtn">Analyze Heritage Object</button>
+      </div>
+
+      <div id="loading" class="loading">
+        <div class="loading-spinner"></div>
+        <p class="loading-text">Analyzing your heritage object...</p>
+      </div>
+
+      <div id="error" class="error hidden"></div>
+
+      <div id="results" class="results hidden">
+        <h3>Analysis Result</h3>
+        <div id="analysisText" class="analysis-content"></div>
+        <button id="newAnalysisBtn">Analyze Another Object</button>
+      </div>
+    </div>
+
+    <script>
+      const fileInput = document.getElementById("fileInput");
+      const uploadArea = document.getElementById("uploadArea");
+      const uploadContent = document.getElementById("uploadContent");
+      const imagePreview = document.getElementById("imagePreview");
+      const previewImg = document.getElementById("previewImg");
+      const analyzeBtn = document.getElementById("analyzeBtn");
+      const loading = document.getElementById("loading");
+      const results = document.getElementById("results");
+      const analysisText = document.getElementById("analysisText");
+      const errorDiv = document.getElementById("error");
+      const newAnalysisBtn = document.getElementById("newAnalysisBtn");
+      const contextInput = document.getElementById("contextInput");
+      const locationInput = document.getElementById("locationInput");
+
+      // Supabase Edge Function endpoint
+      const EDGE_FUNCTION_URL =
+        "https://ufcyulunatsjcrjbnwmp.supabase.co/functions/v1/monuments";
+      const SUPABASE_ANON_KEY =
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVmY3l1bHVuYXRzamNyamJud21wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg4OTM5MzcsImV4cCI6MjA3NDQ2OTkzN30.6J9xiaNoKY1UBXtVIPZbrE_dpz4JKZdPDatlhyVNJUM";
+
+      let currentImageBase64 = null;
+
+      fileInput.addEventListener("change", (e) => {
+        if (e.target.files.length > 0) {
+          handleFileSelect(e.target.files[0]);
+        }
+      });
+
+      function handleFileSelect(file) {
+        if (!file.type.startsWith("image/")) {
+          showError("Please select a valid image file.");
+          return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          currentImageBase64 = e.target.result;
+          previewImg.src = currentImageBase64;
+          previewImg.classList.remove("hidden");
+          uploadContent.classList.add("hidden");
+          imagePreview.classList.remove("hidden");
+          results.classList.add("hidden");
+          errorDiv.classList.add("hidden");
+        };
+        reader.readAsDataURL(file);
+      }
+
+      analyzeBtn.addEventListener("click", analyzeImage);
+
+      newAnalysisBtn.addEventListener("click", () => {
+        resetInterface();
+      });
+
+      async function analyzeImage() {
+        if (!currentImageBase64) {
+          showError("Please select an image first.");
+          return;
+        }
+
+        loading.style.display = "block";
+        errorDiv.classList.add("hidden");
+        analyzeBtn.disabled = true;
+
+        try {
+          const response = await fetch(EDGE_FUNCTION_URL, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+            },
+            body: JSON.stringify({
+              imageBase64: currentImageBase64,
+              context: contextInput.value.trim(),
+              location: locationInput.value.trim(),
+            }),
+          });
+
+          const data = await response.json();
+
+          if (!data.success) {
+            throw new Error(data.error || "Analysis failed");
+          }
+
+          // Handle the analysis response
+          const analysisData = data.analysis;
+
+          // Display the structured JSON response
+          displayAnalysisResult(analysisData);
+          results.classList.remove("hidden");
+          imagePreview.classList.add("hidden");
+        } catch (error) {
+          showError(`Analysis failed: ${error.message}`);
+        } finally {
+          loading.style.display = "none";
+          analyzeBtn.disabled = false;
+        }
+      }
+
+      function showError(message) {
+        errorDiv.textContent = message;
+        errorDiv.classList.remove("hidden");
+      }
+
+      function displayAnalysisResult(data) {
+        // Check if the object is recognized
+        if (!data.recognized) {
+          const html = `
+            <div class="analysis-header">
+              <h4 style="color: #203d52; margin-bottom: 15px; font-size: 1.4rem;">
+                Unidentified Heritage Object
+              </h4>
+              <div class="analysis-meta" style="margin-bottom: 20px; padding: 15px; background: rgba(220, 53, 69, 0.1); border-radius: 10px;">
+                <p><strong>Recognition Status:</strong> 
+                  <span style="color: #dc3545; font-weight: bold;">
+                    Not Recognized
+                  </span>
+                </p>
+                <p style="margin-top: 10px; color: #4a5c6b;">
+                  This heritage object could not be identified with sufficient confidence. 
+                  It may be a lesser-known monument, a local landmark, or require additional context for proper identification.
+                </p>
+              </div>
+            </div>
+          `;
+          analysisText.innerHTML = html;
+          return;
+        }
+
+        // Object is recognized - show full analysis
+        const html = `
+          <div class="analysis-header">
+            <h4 style="color: #203d52; margin-bottom: 15px; font-size: 1.4rem;">
+              ${data.name}
+            </h4>
+            <div class="analysis-meta" style="margin-bottom: 20px; padding: 15px; background: rgba(32, 61, 82, 0.1); border-radius: 10px;">
+              <p><strong>Location:</strong> ${data.city}, ${data.country}</p>
+              <p><strong>Period:</strong> ${data.period}</p>
+            </div>
+          </div>
+          
+          <div class="key-takeaways" style="margin-bottom: 25px;">
+            <h5 style="color: #203d52; margin-bottom: 15px; font-size: 1.2rem;">Key Takeaways</h5>
+            <ul style="list-style: none; padding: 0;">
+              ${data.description.takeaways
+                .map(
+                  (takeaway) =>
+                    `<li style="margin-bottom: 10px; padding-left: 20px; position: relative;">
+                  <span style="position: absolute; left: 0; color: #203d52; font-weight: bold;">•</span>
+                  ${takeaway}
+                </li>`
+                )
+                .join("")}
+            </ul>
+          </div>
+          
+          <div class="in-depth-context" style="margin-bottom: 25px;">
+            <h5 style="color: #203d52; margin-bottom: 15px; font-size: 1.2rem;">Detailed Analysis</h5>
+            <div style="line-height: 1.7; text-align: justify;">
+              <p style="margin-bottom: 15px;">${data.description.context.replace(
+                /\n\n/g,
+                '</p><p style="margin-bottom: 15px;">'
+              )}</p>
+            </div>
+          </div>
+          
+          <div class="curiosities" style="padding: 15px; background: #f5f4f3; border-radius: 10px; border-left: 4px solid #203d52;">
+            <h5 style="color: #203d52; margin-bottom: 10px; font-size: 1.1rem;">Interesting Fact</h5>
+            <p style="margin: 0; font-style: italic;">${
+              data.description.curiosities
+            }</p>
+          </div>
+        `;
+
+        analysisText.innerHTML = html;
+      }
+
+      function resetInterface() {
+        currentImageBase64 = null;
+        fileInput.value = "";
+        contextInput.value = "";
+        locationInput.value = "";
+        previewImg.classList.add("hidden");
+        uploadContent.classList.remove("hidden");
+        imagePreview.classList.add("hidden");
+        results.classList.add("hidden");
+        loading.style.display = "none";
+        errorDiv.classList.add("hidden");
+      }
+
+      function goToIndex() {
+        window.location.href = "index.html";
+      }
+
+      uploadArea.addEventListener("click", () => {
+        fileInput.click();
+      });
+    </script>
+  </body>
+</html>

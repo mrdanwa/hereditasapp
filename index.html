@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hereditas - Heritage Analysis Platform</title>
+    <link rel="icon" type="image/png" href="assets/logo/favicon.png" />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        min-height: 100vh;
+        background: #dfdddb;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+      }
+
+      .container {
+        background: rgba(255, 255, 255, 0.98);
+        padding: 40px;
+        border-radius: 12px;
+        box-shadow: 0 8px 32px rgba(32, 61, 82, 0.15);
+        max-width: 600px;
+        width: 100%;
+        text-align: center;
+      }
+
+      h1 {
+        color: #203d52;
+        font-size: 2.5rem;
+        font-weight: 600;
+        margin-bottom: 10px;
+      }
+
+      .subtitle {
+        color: #4a5c6b;
+        margin-bottom: 40px;
+        font-size: 1rem;
+        font-weight: 400;
+      }
+
+      .selection-container {
+        display: flex;
+        gap: 20px;
+        justify-content: center;
+        flex-wrap: wrap;
+        margin-bottom: 30px;
+      }
+
+      .option-card {
+        background: #f5f4f3;
+        border: 2px solid #d1d0ce;
+        border-radius: 8px;
+        padding: 30px 20px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        min-width: 200px;
+        flex: 1;
+        max-width: 250px;
+      }
+
+      .option-card:hover {
+        border-color: #203d52;
+        background: #e8e7e5;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 16px rgba(32, 61, 82, 0.1);
+      }
+
+      .option-icon {
+        font-size: 2.5rem;
+        margin-bottom: 15px;
+        color: #203d52;
+      }
+
+      .option-title {
+        color: #203d52;
+        font-size: 1.2rem;
+        font-weight: 600;
+        margin-bottom: 10px;
+      }
+
+      .option-description {
+        color: #4a5c6b;
+        font-size: 0.9rem;
+        line-height: 1.4;
+        margin-bottom: 20px;
+      }
+
+      .select-button {
+        background: #203d52;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        width: 100%;
+      }
+
+      .select-button:hover {
+        background: #2a4d66;
+        transform: translateY(-1px);
+      }
+
+      .info-section {
+        background: #f5f4f3;
+        padding: 20px;
+        border-radius: 6px;
+        margin-top: 20px;
+        border-left: 3px solid #203d52;
+      }
+
+      .info-section h3 {
+        color: #203d52;
+        margin-bottom: 10px;
+        font-size: 1.1rem;
+        font-weight: 600;
+      }
+
+      .info-section p {
+        color: #4a5c6b;
+        line-height: 1.5;
+        font-size: 0.9rem;
+      }
+
+      /* Mobile Responsiveness */
+      @media (max-width: 768px) {
+        .container {
+          padding: 40px 20px;
+          margin: 10px;
+        }
+
+        h1 {
+          font-size: 2.5rem;
+        }
+
+        .subtitle {
+          font-size: 1.1rem;
+        }
+
+        .selection-container {
+          flex-direction: column;
+          align-items: center;
+          gap: 20px;
+        }
+
+        .option-card {
+          min-width: 100%;
+          max-width: 100%;
+          padding: 30px 20px;
+        }
+
+        .option-icon {
+          font-size: 3.5rem;
+        }
+
+        .option-title {
+          font-size: 1.2rem;
+        }
+      }
+
+      @media (max-width: 480px) {
+        body {
+          padding: 10px;
+        }
+
+        .container {
+          padding: 30px 15px;
+        }
+
+        h1 {
+          font-size: 2rem;
+        }
+
+        .subtitle {
+          font-size: 1rem;
+        }
+
+        .option-card {
+          padding: 25px 15px;
+        }
+
+        .option-icon {
+          font-size: 3rem;
+        }
+
+        .option-title {
+          font-size: 1.1rem;
+        }
+
+        .option-description {
+          font-size: 0.9rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>
+        <img
+          src="assets/logo/logo2.png"
+          alt="Hereditas Logo"
+          style="height: 50px; vertical-align: middle; padding-bottom: 10px"
+        />
+      </h1>
+      <p class="subtitle">Choose your analysis type</p>
+
+      <div class="selection-container">
+        <div class="option-card" onclick="redirectToMonuments()">
+          <div class="option-icon">🏛️</div>
+          <h3 class="option-title">Monuments</h3>
+          <p class="option-description">
+            Analyze architectural monuments and landmarks.
+          </p>
+          <button class="select-button">Start Analysis</button>
+        </div>
+
+        <div class="option-card" onclick="redirectToMuseums()">
+          <div class="option-icon">🏺</div>
+          <h3 class="option-title">Museum Objects</h3>
+          <p class="option-description">
+            Analyze museum artifacts with object and label images.
+          </p>
+          <button class="select-button">Start Analysis</button>
+        </div>
+      </div>
+
+      <div class="info-section">
+        <h3>How It Works</h3>
+        <p>
+          Upload images and get AI-powered analysis of heritage objects with
+          historical context and cultural insights.
+        </p>
+      </div>
+    </div>
+
+    <script>
+      function redirectToMonuments() {
+        window.location.href = "monuments.html";
+      }
+
+      function redirectToMuseums() {
+        window.location.href = "museums.html";
+      }
+
+      // Add keyboard navigation
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "1") {
+          redirectToMonuments();
+        } else if (e.key === "2") {
+          redirectToMuseums();
+        }
+      });
+    </script>
+  </body>
+</html>
