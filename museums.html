@@ -598,8 +598,10 @@
               ${data.name}
             </h4>
             <div class="analysis-meta" style="margin-bottom: 20px; padding: 15px; background: rgba(212, 175, 55, 0.1); border-radius: 10px;">
-              <p><strong>Origin:</strong> ${data.origin}</p>
-              <p><strong>Location:</strong> ${data.country}</p>
+              <p><strong>Museum:</strong> ${data.museum}</p>
+              <p><strong>Location:</strong> ${
+                data.city ? `${data.city}, ${data.country}` : data.country
+              }</p>
               <p><strong>Period:</strong> ${data.period}</p>
             </div>
           </div>
