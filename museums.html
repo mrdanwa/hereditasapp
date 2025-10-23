@@ -446,14 +446,17 @@
       const contextInput = document.getElementById("contextInput");
       const locationInput = document.getElementById("locationInput");
 
-      // Supabase Edge Function endpoint
-      const EDGE_FUNCTION_URL =
+      // Supabase Edge Function endpoints
+      const INDOOR_ANALYSIS_URL =
         "https://ufcyulunatsjcrjbnwmp.supabase.co/functions/v1/indoor";
+      const INDOOR_STORY_URL =
+        "https://ufcyulunatsjcrjbnwmp.supabase.co/functions/v1/indoor_story";
       const SUPABASE_ANON_KEY =
         "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVmY3l1bHVuYXRzamNyamJud21wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg4OTM5MzcsImV4cCI6MjA3NDQ2OTkzN30.6J9xiaNoKY1UBXtVIPZbrE_dpz4JKZdPDatlhyVNJUM";
 
       let currentObjectImageBase64 = null;
       let currentLabelImageBase64 = null;
+      let currentAnalysisData = null;
 
       objectFileInput.addEventListener("change", (e) => {
         if (e.target.files.length > 0) {
@@ -526,7 +529,8 @@
         analyzeBtn.disabled = true;
 
         try {
-          const response = await fetch(EDGE_FUNCTION_URL, {
+          // First API call - Analysis
+          const response = await fetch(INDOOR_ANALYSIS_URL, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -535,8 +539,8 @@
             body: JSON.stringify({
               objectImageBase64: currentObjectImageBase64,
               labelImageBase64: currentLabelImageBase64 || null,
-              context: contextInput.value.trim(),
-              location: locationInput.value.trim(),
+              context: contextInput.value.trim() || undefined,
+              location: locationInput.value.trim() || undefined,
             }),
           });
 
@@ -546,17 +550,73 @@
             throw new Error(data.error || "Analysis failed");
           }
 
-          // Handle the analysis response
-          const analysisData = data.analysis;
+          currentAnalysisData = data.analysis;
 
-          // Display the structured JSON response
-          displayAnalysisResult(analysisData);
+          // Hide loading and show Quick Read immediately
+          loading.style.display = "none";
+          displayAnalysisResult(currentAnalysisData, null);
           results.classList.remove("hidden");
           imagePreview.classList.add("hidden");
+
+          // If recognized, fetch story in background
+          if (currentAnalysisData.recognized) {
+            fetchStory(currentAnalysisData);
+          }
         } catch (error) {
           showError(`Analysis failed: ${error.message}`);
-        } finally {
           loading.style.display = "none";
+          analyzeBtn.disabled = false;
+        }
+      }
+
+      async function fetchStory(analysisData) {
+        try {
+          // Show loading state in story section
+          displayAnalysisResult(analysisData, "loading");
+
+          // Prepare input for story API
+          const inputParts = [
+            `Name: ${analysisData.name}`,
+            analysisData.city ? `City: ${analysisData.city}` : null,
+            analysisData.country ? `Country: ${analysisData.country}` : null,
+            analysisData.museum ? `Museum: ${analysisData.museum}` : null,
+            analysisData.period ? `Period: ${analysisData.period}` : null,
+            analysisData.description?.takeaways
+              ? `Key Facts: ${analysisData.description.takeaways.join("; ")}`
+              : null,
+            analysisData.description?.curiosities
+              ? `Additional Info: ${analysisData.description.curiosities}`
+              : null,
+            contextInput.value.trim()
+              ? `User Context: ${contextInput.value.trim()}`
+              : null,
+          ].filter(Boolean);
+
+          const input = inputParts.join("\n");
+
+          // Second API call - Story
+          const response = await fetch(INDOOR_STORY_URL, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+            },
+            body: JSON.stringify({ input }),
+          });
+
+          if (!response.ok) {
+            throw new Error(`Story generation failed: ${response.status}`);
+          }
+
+          const story = await response.text();
+
+          // Display with story
+          displayAnalysisResult(analysisData, story);
+        } catch (error) {
+          console.error("Story fetch failed:", error);
+          // Display without story on error
+          displayAnalysisResult(analysisData, "error");
+        } finally {
           analyzeBtn.disabled = false;
         }
       }
@@ -566,7 +626,7 @@
         errorDiv.classList.remove("hidden");
       }
 
-      function displayAnalysisResult(data) {
+      function displayAnalysisResult(data, story) {
         // Check if the object is recognized
         if (!data.recognized) {
           const html = `
@@ -590,7 +650,39 @@
           return;
         }
 
-        // Object is recognized - show full analysis
+        // Object is recognized - show Quick Read and Story
+        let storySection = "";
+        if (story === "loading") {
+          storySection = `
+            <div class="immersive-story" style="margin-bottom: 25px; padding: 20px; background: linear-gradient(145deg, #f8f9fa, #e9ecef); border-radius: 10px;">
+              <h5 style="color: #495057; margin-bottom: 15px; font-size: 1.2rem;">Immersive Story</h5>
+              <div style="text-align: center; padding: 20px;">
+                <div class="loading-spinner" style="width: 40px; height: 40px; margin: 0 auto 15px;"></div>
+                <p style="color: #6c757d; font-style: italic;">Loading immersive story...</p>
+              </div>
+            </div>
+          `;
+        } else if (story && story !== "error") {
+          storySection = `
+            <div class="immersive-story" style="margin-bottom: 25px; padding: 20px; background: linear-gradient(145deg, #f8f9fa, #e9ecef); border-radius: 10px; border-left: 4px solid #d4af37;">
+              <h5 style="color: #495057; margin-bottom: 15px; font-size: 1.2rem;">Immersive Story</h5>
+              <div style="line-height: 1.8; text-align: justify; color: #495057;">
+                ${story
+                  .split("\n\n")
+                  .map((para) => `<p style="margin-bottom: 15px;">${para}</p>`)
+                  .join("")}
+              </div>
+            </div>
+          `;
+        } else if (story === "error") {
+          storySection = `
+            <div class="immersive-story" style="margin-bottom: 25px; padding: 20px; background: rgba(220, 53, 69, 0.1); border-radius: 10px;">
+              <h5 style="color: #495057; margin-bottom: 15px; font-size: 1.2rem;">Immersive Story</h5>
+              <p style="color: #dc3545; font-style: italic;">Failed to load story. Please try again.</p>
+            </div>
+          `;
+        }
+
         const html = `
           <div class="analysis-header">
             <h4 style="color: #d4af37; margin-bottom: 15px; font-size: 1.4rem;">
@@ -606,7 +698,7 @@
           </div>
           
           <div class="key-takeaways" style="margin-bottom: 25px;">
-            <h5 style="color: #495057; margin-bottom: 15px; font-size: 1.2rem;">Key Takeaways</h5>
+            <h5 style="color: #495057; margin-bottom: 15px; font-size: 1.2rem;">Quick Read</h5>
             <ul style="list-style: none; padding: 0;">
               ${data.description.takeaways
                 .map(
@@ -620,22 +712,14 @@
             </ul>
           </div>
           
-          <div class="in-depth-context" style="margin-bottom: 25px;">
-            <h5 style="color: #495057; margin-bottom: 15px; font-size: 1.2rem;">Detailed Analysis</h5>
-            <div style="line-height: 1.7; text-align: justify;">
-              <p style="margin-bottom: 15px;">${data.description.context.replace(
-                /\n\n/g,
-                '</p><p style="margin-bottom: 15px;">'
-              )}</p>
-            </div>
-          </div>
-          
-          <div class="curiosities" style="padding: 15px; background: linear-gradient(145deg, #f8f9fa, #e9ecef); border-radius: 10px; border-left: 4px solid #d4af37;">
+          <div class="curiosities" style="padding: 15px; background: linear-gradient(145deg, #f8f9fa, #e9ecef); border-radius: 10px; border-left: 4px solid #d4af37; margin-bottom: 25px;">
             <h5 style="color: #495057; margin-bottom: 10px; font-size: 1.1rem;">Interesting Fact</h5>
             <p style="margin: 0; font-style: italic;">${
               data.description.curiosities
             }</p>
           </div>
+
+          ${storySection}
         `;
 
         analysisText.innerHTML = html;
@@ -644,6 +728,7 @@
       function resetInterface() {
         currentObjectImageBase64 = null;
         currentLabelImageBase64 = null;
+        currentAnalysisData = null;
         objectFileInput.value = "";
         labelFileInput.value = "";
         contextInput.value = "";
@@ -656,6 +741,7 @@
         results.classList.add("hidden");
         loading.style.display = "none";
         errorDiv.classList.add("hidden");
+        analyzeBtn.disabled = false;
       }
 
       function goToIndex() {
