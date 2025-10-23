@@ -447,10 +447,10 @@
       const locationInput = document.getElementById("locationInput");
 
       // Supabase Edge Function endpoints
-      const INDOOR_ANALYSIS_URL =
-        "https://ufcyulunatsjcrjbnwmp.supabase.co/functions/v1/indoor";
-      const INDOOR_STORY_URL =
-        "https://ufcyulunatsjcrjbnwmp.supabase.co/functions/v1/indoor_story";
+      const OBJECTS_ANALYSIS_URL =
+        "https://ufcyulunatsjcrjbnwmp.supabase.co/functions/v1/objects";
+      const OBJECTS_STORY_URL =
+        "https://ufcyulunatsjcrjbnwmp.supabase.co/functions/v1/objects_story";
       const SUPABASE_ANON_KEY =
         "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVmY3l1bHVuYXRzamNyamJud21wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg4OTM5MzcsImV4cCI6MjA3NDQ2OTkzN30.6J9xiaNoKY1UBXtVIPZbrE_dpz4JKZdPDatlhyVNJUM";
 
@@ -530,7 +530,7 @@
 
         try {
           // First API call - Analysis
-          const response = await fetch(INDOOR_ANALYSIS_URL, {
+          const response = await fetch(OBJECTS_ANALYSIS_URL, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -595,7 +595,7 @@
           const input = inputParts.join("\n");
 
           // Second API call - Story
-          const response = await fetch(INDOOR_STORY_URL, {
+          const response = await fetch(OBJECTS_STORY_URL, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -697,8 +697,17 @@
             </div>
           </div>
           
+          ${
+            data.description.summary
+              ? `<div class="summary" style="margin-bottom: 25px;">
+              <h5 style="color: #495057; margin-bottom: 15px; font-size: 1.2rem;">Quick Summary</h5>
+              <p style="color: #495057; line-height: 1.6;">${data.description.summary}</p>
+            </div>`
+              : ""
+          }
+          
           <div class="key-takeaways" style="margin-bottom: 25px;">
-            <h5 style="color: #495057; margin-bottom: 15px; font-size: 1.2rem;">Quick Read</h5>
+            <h5 style="color: #495057; margin-bottom: 15px; font-size: 1.2rem;">Key Takeaways</h5>
             <ul style="list-style: none; padding: 0;">
               ${data.description.takeaways
                 .map(
@@ -713,10 +722,18 @@
           </div>
           
           <div class="curiosities" style="padding: 15px; background: linear-gradient(145deg, #f8f9fa, #e9ecef); border-radius: 10px; border-left: 4px solid #d4af37; margin-bottom: 25px;">
-            <h5 style="color: #495057; margin-bottom: 10px; font-size: 1.1rem;">Interesting Fact</h5>
-            <p style="margin: 0; font-style: italic;">${
-              data.description.curiosities
-            }</p>
+            <h5 style="color: #495057; margin-bottom: 10px; font-size: 1.1rem;">Curiosities</h5>
+            <ul style="list-style: none; padding: 0;">
+              ${data.description.curiosities
+                .map(
+                  (curiosity) =>
+                    `<li style="margin-bottom: 10px; padding-left: 20px; position: relative;">
+                  <span style="position: absolute; left: 0; color: #d4af37; font-weight: bold;">•</span>
+                  <span style="font-style: italic;">${curiosity}</span>
+                </li>`
+                )
+                .join("")}
+            </ul>
           </div>
 
           ${storySection}
