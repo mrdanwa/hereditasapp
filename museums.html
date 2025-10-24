@@ -447,10 +447,10 @@
       const locationInput = document.getElementById("locationInput");
 
       // Supabase Edge Function endpoints
-      const OBJECTS_ANALYSIS_URL =
-        "https://ufcyulunatsjcrjbnwmp.supabase.co/functions/v1/objects";
-      const OBJECTS_STORY_URL =
-        "https://ufcyulunatsjcrjbnwmp.supabase.co/functions/v1/objects_story";
+      const ARTIFACTS_ANALYSIS_URL =
+        "https://ufcyulunatsjcrjbnwmp.supabase.co/functions/v1/artifacts";
+      const ARTIFACTS_STORY_URL =
+        "https://ufcyulunatsjcrjbnwmp.supabase.co/functions/v1/artifacts_story";
       const SUPABASE_ANON_KEY =
         "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVmY3l1bHVuYXRzamNyamJud21wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg4OTM5MzcsImV4cCI6MjA3NDQ2OTkzN30.6J9xiaNoKY1UBXtVIPZbrE_dpz4JKZdPDatlhyVNJUM";
 
@@ -530,7 +530,7 @@
 
         try {
           // First API call - Analysis
-          const response = await fetch(OBJECTS_ANALYSIS_URL, {
+          const response = await fetch(ARTIFACTS_ANALYSIS_URL, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -595,7 +595,7 @@
           const input = inputParts.join("\n");
 
           // Second API call - Story
-          const response = await fetch(OBJECTS_STORY_URL, {
+          const response = await fetch(ARTIFACTS_STORY_URL, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
